@@ -1,21 +1,11 @@
 // call the util fn and get cmd params
-const { getParams, getCache, setCache } = require('./utils');
+const { getParams, getCache, setCache, clearCacheFn } = require('./utils');
 const axios = require('axios');
 const express = require('express');
 const app = express();
 app.use(express.json());
 const { clearCache, url, port } = getParams(process.argv);
 const BaseUrl = 'http://localhost';
-
-const clearCacheFn = async () => {
-  const emptyCache = { cache: {} };
-  try {
-    await fs.writeFile('cache.json', JSON.stringify(emptyCache, null, 2)); // Write file asynchronously
-    console.log('Cache cleared successfully.');
-  } catch (err) {
-    console.error('Error clearing cache:', err);
-  }
-};
 
 if (clearCache) {
   await clearCacheFn();
@@ -27,7 +17,10 @@ app.use('/:target*', async (req, res) => {
   const targetUrl = `${url}/${originalUrl}`;
   const cacheRes = getCache(targetUrl);
   if (cacheRes) {
-    res.status(200).header.json({ data: cacheRes.data });
+    res
+      .status(200)
+      .header({ ...cacheRes.headers, 'X-CACHE': 'HIT' })
+      .json({ data: cacheRes.data });
   } else {
     const axiosRes = await axios.get(targetUrl);
     const responseObj = {
@@ -36,7 +29,10 @@ app.use('/:target*', async (req, res) => {
     };
 
     setCache(targetUrl, responseObj);
-    res.status(201).header({ 'X-CACHE': 'MISS' }).json({ data: cacheRes });
+    res
+      .status(201)
+      .header({ ...axiosRes.headers, 'X-CACHE': 'MISS' })
+      .json({ data: axiosRes.data });
   }
 });
 

@@ -1,5 +1,6 @@
 const chalk = require('chalk');
 const fs = require('fs').promises;
+const redis = require('./redisClient');
 
 const getParams = (argv) => {
   const [, , ...args] = argv;
@@ -53,36 +54,24 @@ const getParams = (argv) => {
   return { port, url, clearCache };
 };
 
-const clearCache = async () => {
-  const emptyCache = { cache: {} };
-  try {
-    await fs.writeFile('cache.json', JSON.stringify(emptyCache, null, 2)); // Write file asynchronously
-    console.log('Cache cleared successfully.');
-  } catch (err) {
-    console.error('Error clearing cache:', err);
-  }
-};
-
 const getCache = async (url) => {
   try {
-    const data = await fs.readFile('cache.json', 'utf8'); // Read file asynchronously
-    const cache = JSON.parse(data); // Parse JSON data
-    return cache[url] || -1; // Return the value or -1 if not found
-  } catch (err) {
-    console.error('Error reading or parsing file:', err);
-    return -1; // Return -1 on error
+    const res = await redis.get('url');
+    return res;
+  } catch (error) {
+    throw error;
   }
 };
 
 const setCache = async (url, res) => {
   try {
-    const data = await fs.readFile('cache.json', 'utf8'); // Read file asynchronously
-    const cache = JSON.parse(data);
-    cache[url] = { data: res.data, headers: res.headers };
-    await fs.writeFile('cache.json', JSON.stringify(cache, null, 2));
+    await redis.set('url', res);
   } catch (err) {
     throw err;
   }
 };
+const clearCacheFn = async () => {
+  await redis.del(redis.keys('*'));
+};
 
-module.exports = { getParams, getCache, setCache };
+module.exports = { getParams, getCache, setCache, clearCacheFn };
