@@ -16,6 +16,7 @@ const getParams = async (argv) => {
         'All cache cleared. All Request would be forwarded'
       )
     );
+    process.exit();
   }
 
   if (args.indexOf('--port') > -1) {
@@ -82,7 +83,7 @@ const setCache = async (url, res) => {
   try {
     const data = await fs.readFile('cache.json', 'utf8'); // Read file asynchronously
     const cache = JSON.parse(data);
-    cache[url] = res;
+    cache[url] = { data: res.data, headers: res.headers };
     await fs.writeFile('cache.json', JSON.stringify(cache, null, 2));
   } catch (err) {
     throw err;

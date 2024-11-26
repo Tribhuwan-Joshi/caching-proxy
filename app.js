@@ -1,22 +1,12 @@
 // call the util fn and get cmd params
 const { getParams, getCache, setCache } = require('./utils');
 const axios = require('axios');
-const { port, url } = getParams(process.argv);
-
-// const express = require('express');
-// const app = express();
-
-// app.get('/', async (req, res) => {
-//   const { data } = await axios.get(url);
-//   res.status(201).json({ data });
-// });
-
 const getResponse = async (url) => {
-  const res = getCache(url);
+  const res = await getCache(url);
   if (res == -1) {
     try {
       const res = await axios.get(url);
-      setCache(url, res);
+      await setCache(url, res);
       res.headers['x-cache'] = 'MISS';
       console.log(res.headers);
       console.log(res.data);
@@ -32,6 +22,10 @@ const getResponse = async (url) => {
   }
 };
 
-getResponse(url);
+const runProxy = async () => {
+  const { port, url } = await getParams(process.argv);
+  const res = await getResponse(url);
+  console.log(res);
+};
 
-console.log(port, url);
+runProxy();
