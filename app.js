@@ -1,21 +1,23 @@
 // call the util fn and get cmd params
 const { getParams, getCache, setCache, clearCacheFn } = require('./utils');
 const axios = require('axios');
+const chalk = require('chalk');
 const express = require('express');
 const app = express();
 app.use(express.json());
 const { clearCache, url, port } = getParams(process.argv);
-const BaseUrl = 'http://localhost';
 
 if (clearCache) {
-  await clearCacheFn();
-  process.exit();
+  clearCacheFn().then((res) => {
+    console.log(chalk.blueBright('All cache cleared'));
+    process.exit();
+  });
 }
 
-app.use('/:target*', async (req, res) => {
+app.use('/:target*', async (req, res, next) => {
   const originalUrl = req.originalUrl;
-  const targetUrl = `${url}/${originalUrl}`;
-  const cacheRes = getCache(targetUrl);
+  const targetUrl = `${url}${originalUrl}`;
+  const cacheRes = await getCache(targetUrl);
   if (cacheRes) {
     res
       .status(200)
@@ -28,14 +30,13 @@ app.use('/:target*', async (req, res) => {
       headers: axiosRes.headers,
     };
 
-    setCache(targetUrl, responseObj);
+    await setCache(targetUrl, responseObj);
     res
-      .status(201)
+      .status(200)
       .header({ ...axiosRes.headers, 'X-CACHE': 'MISS' })
       .json({ data: axiosRes.data });
   }
+  next();
 });
 
-app.listen(port, () =>
-  console.log('proxy server started at ', `${BaseUrl}:${port}`)
-);
+app.listen(port, () => console.log('proxy server started'));

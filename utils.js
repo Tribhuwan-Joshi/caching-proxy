@@ -13,6 +13,7 @@ const getParams = (argv) => {
 
   if (args.indexOf('--clear-cache') > -1) {
     clearCache = true;
+    return { clearCache: true };
   }
 
   if (args.indexOf('--port') > -1) {
@@ -56,7 +57,7 @@ const getParams = (argv) => {
 
 const getCache = async (url) => {
   try {
-    const res = await redis.get('url');
+    const res = await redis.get(url);
     return res;
   } catch (error) {
     throw error;
@@ -65,7 +66,7 @@ const getCache = async (url) => {
 
 const setCache = async (url, res) => {
   try {
-    await redis.set('url', res);
+    await redis.set(url, res);
   } catch (err) {
     throw err;
   }
