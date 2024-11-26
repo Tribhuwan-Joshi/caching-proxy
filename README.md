@@ -11,11 +11,11 @@
 
 ### Installation
 
-`git clone https://github.com/Tribhuwan-Joshi/caching-proxy` /n
-`cd caching-proxy` /n
-`npm install`
+```git clone https://github.com/Tribhuwan-Joshi/caching-proxy```  
+```cd caching-proxy```  
+```npm install```
 
 ### Usage
 
-To start proxy - `npm run caching-proxy --port <number> --origin <url>` /n
+To start proxy - `npm run caching-proxy --port <number> --origin <url>`  
 To clear cache - `npm run caching-proxy -- --clear-cache`
