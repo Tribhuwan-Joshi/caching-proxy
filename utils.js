@@ -1,8 +1,7 @@
 const chalk = require('chalk');
+const fs = require('fs').promises;
 
-const cache = new Map(); // map url to response
-
-const getParams = (argv) => {
+const getParams = async (argv) => {
   const [, , ...args] = argv;
   const n = args.length;
   let port;
@@ -11,7 +10,7 @@ const getParams = (argv) => {
   // if clear-cache flag provided
 
   if (args.indexOf('--clear-cache') > -1) {
-    clearCache();
+    await clearCache();
     console.log(
       chalk.greenBright.bold(
         'All cache cleared. All Request would be forwarded'
@@ -58,8 +57,36 @@ const getParams = (argv) => {
   return { port, url };
 };
 
-const clearCache = () => {
-  cache.clear();
+const clearCache = async () => {
+  const emptyCache = { cache: {} };
+  try {
+    await fs.writeFile('cache.json', JSON.stringify(emptyCache, null, 2)); // Write file asynchronously
+    console.log('Cache cleared successfully.');
+  } catch (err) {
+    console.error('Error clearing cache:', err);
+  }
 };
 
-module.exports = getParams;
+const getCache = async (url) => {
+  try {
+    const data = await fs.readFile('cache.json', 'utf8'); // Read file asynchronously
+    const cache = JSON.parse(data); // Parse JSON data
+    return cache[url] || -1; // Return the value or -1 if not found
+  } catch (err) {
+    console.error('Error reading or parsing file:', err);
+    return -1; // Return -1 on error
+  }
+};
+
+const setCache = async (url, res) => {
+  try {
+    const data = await fs.readFile('cache.json', 'utf8'); // Read file asynchronously
+    const cache = JSON.parse(data);
+    cache[url] = res;
+    await fs.writeFile('cache.json', JSON.stringify(cache, null, 2));
+  } catch (err) {
+    throw err;
+  }
+};
+
+module.exports = { getParams, getCache, setCache };
