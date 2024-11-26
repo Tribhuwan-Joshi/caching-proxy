@@ -1,22 +1,17 @@
 const chalk = require('chalk');
 const fs = require('fs').promises;
 
-const getParams = async (argv) => {
+const getParams = (argv) => {
   const [, , ...args] = argv;
   const n = args.length;
   let port;
   let url;
+  let clearCache = false;
 
   // if clear-cache flag provided
 
   if (args.indexOf('--clear-cache') > -1) {
-    await clearCache();
-    console.log(
-      chalk.greenBright.bold(
-        'All cache cleared. All Request would be forwarded'
-      )
-    );
-    process.exit();
+    clearCache = true;
   }
 
   if (args.indexOf('--port') > -1) {
@@ -55,7 +50,7 @@ const getParams = async (argv) => {
   }
   port = port || 3000;
 
-  return { port, url };
+  return { port, url, clearCache };
 };
 
 const clearCache = async () => {
