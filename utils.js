@@ -1,9 +1,23 @@
 const chalk = require('chalk');
+
+const cache = new Map(); // map url to response
+
 const getParams = (argv) => {
   const [, , ...args] = argv;
   const n = args.length;
   let port;
   let url;
+
+  // if clear-cache flag provided
+
+  if (args.indexOf('--clear-cache') > -1) {
+    clearCache();
+    console.log(
+      chalk.greenBright.bold(
+        'All cache cleared. All Request would be forwarded'
+      )
+    );
+  }
 
   if (args.indexOf('--port') > -1) {
     const portInd = args.indexOf('--port') + 1;
@@ -42,6 +56,10 @@ const getParams = (argv) => {
   port = port || 3000;
 
   return { port, url };
+};
+
+const clearCache = () => {
+  cache.clear();
 };
 
 module.exports = getParams;
