@@ -1,0 +1,4 @@
+- parse command line inputs
+- check if port is already in use
+- start server and maintain hashmap -> for url and result
+- if url in cache get response add res.
